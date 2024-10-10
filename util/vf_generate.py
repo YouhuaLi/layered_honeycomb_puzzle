@@ -1,14 +1,10 @@
 from sage.all import *
+#from sage.graphs.generic_graph_pyx import SubgraphSearch
+# layer number of the problem
+layer =  4
 
-
-# Check if the correct number of arguments are provided
-if len(sys.argv) != 3:
-    print("Usage: python lad_generate.py <layer> <d>")
-    sys.exit(1)
-
-# Parse command line arguments
-layer = int(sys.argv[1])
-d = int(sys.argv[2])
+# target distance
+d = 9
 
 # Generate the candidate big graph
 def generate_candidate_graph(layer, d):
@@ -30,7 +26,7 @@ def generate_candidate_graph(layer, d):
     # Print the graph
     # print(graph)
     p = graph.plot()
-    #p.save('big_graph.png')
+    p.save('big_graph.png')
     return graph
 
 
@@ -80,37 +76,44 @@ def generate_hexagonal_grid_graph(n):
     # 返回生成的图
     return G
 
-#generate a gfu file for grahp g
-def generate_gfu_file(g, filename, graph_name="test_graph"):
-    with open(filename, 'w') as f:
-        f.write('%d\n' % g.order())
-        for v in g.vertices():
-            f.write('%d\n' % v.degree())
-            f.write('%d\n' % v.edges() )
-
-def export_graph_to_lad(graph, filename):
-    # 获取图的顶点数量
+def export_graph_to_vf(graph, filename):
+    # Get the number of vertices in the graph
     n = graph.num_verts()
     
-    # 打开文件准备写入
+    # Open the file to write
     with open(filename, 'w') as file:
-        # 写入第一行，顶点的数量
-        file.write(f"{n}\n")
+        # Write the number of nodes
+        file.write(f"{n}\n\n")
         
-        # 写入每个顶点的邻居信息
+        # Write node attributes (here using the node index as the attribute)
+        #file.write("# Node attributes\n")
         for vertex in graph.vertices():
-            # 获取当前顶点的继承节点（邻接顶点）
-            successors = graph.neighbors(vertex)
-            # 每个邻接顶点的标签减1
-            neighbors_minus_one = [neighbor - 1 for neighbor in successors]
-            # 写入当前顶点的继承节点数量及其继承节点
-            file.write(f"{len(successors)} {' '.join(map(str, neighbors_minus_one))}\n")
+            # Assuming the node attribute is the node index, but you can modify as needed
+            file.write(f"{vertex - 1 } 1\n")
+        
+        file.write("\n")
+        
+        # Write edges information
+        for vertex in graph.vertices():
+            # Get the outgoing edges for the vertex
+            edges = graph.edges_incident(vertex)
+            # Write the number of outgoing edges from this node
+            #file.write(f"# Edges coming out of node {vertex - 1}\n")
+            file.write(f"{len(edges)}\n")
+            
+            # Write each edge information
+            for edge in edges:
+                u, v, edge_attr = edge
+                if u == vertex:
+                    file.write(f"{u-1} {v-1}\n")
+                else:
+                    file.write(f"{v-1} {u-1}\n")
+            file.write("\n")
+
+pattern_graph = generate_hexagonal_grid_graph(layer)
+export_graph_to_vf(pattern_graph, f'/Users/youhua.li/code/vf3lib/hexagon/pattern_{layer}.vf')
 
 
-#pattern_graph = generate_hexagonal_grid_graph(layer)
+target_graph = generate_candidate_graph(layer, d)
+export_graph_to_vf(target_graph, f'/Users/youhua.li/code/vf3lib/hexagon/target_{layer}_{d}.vf')
 
-candidate_graph = generate_candidate_graph(layer, d)
-
-#export_graph_to_lad(pattern_graph, f'/Users/youhua.li/code/math/layered_honeycomb_puzzle/layer/{layer}/pattern.lad')
-
-export_graph_to_lad(candidate_graph, f'/Users/youhua.li/code/math/layered_honeycomb_puzzle/layer/{layer}/distance-{d}.lad')
