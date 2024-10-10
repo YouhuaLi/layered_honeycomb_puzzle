@@ -1,9 +1,9 @@
 from sage.all import *
-
+import sys
 
 # Check if the correct number of arguments are provided
 if len(sys.argv) != 3:
-    print("Usage: python lad_generate.py <layer> <d>")
+    print("Usage: python gfu_generate.py <layer> <d>")
     sys.exit(1)
 
 # Parse command line arguments
@@ -30,7 +30,7 @@ def generate_candidate_graph(layer, d):
     # Print the graph
     # print(graph)
     p = graph.plot()
-    #p.save('big_graph.png')
+    p.save('big_graph.png')
     return graph
 
 
@@ -80,37 +80,34 @@ def generate_hexagonal_grid_graph(n):
     # 返回生成的图
     return G
 
-#generate a gfu file for grahp g
-def generate_gfu_file(g, filename, graph_name="test_graph"):
-    with open(filename, 'w') as f:
-        f.write('%d\n' % g.order())
-        for v in g.vertices():
-            f.write('%d\n' % v.degree())
-            f.write('%d\n' % v.edges() )
+def export_graph_to_gfu(graph, filename, graph_name="graph"):
+    # 获取节点数
+    num_vertices = graph.num_verts()
 
-def export_graph_to_lad(graph, filename):
-    # 获取图的顶点数量
-    n = graph.num_verts()
-    
-    # 打开文件准备写入
+    # 打开文件写入
     with open(filename, 'w') as file:
-        # 写入第一行，顶点的数量
-        file.write(f"{n}\n")
+        # 写入图名称
+        file.write(f"#{graph_name}\n")
         
-        # 写入每个顶点的邻居信息
+        # 写入节点数量
+        file.write(f"{num_vertices}\n")
+        
+        # 写入节点标签，假设每个节点的标签为其索引（你可以自定义标签）
         for vertex in graph.vertices():
-            # 获取当前顶点的继承节点（邻接顶点）
-            successors = graph.neighbors(vertex)
-            # 每个邻接顶点的标签减1
-            neighbors_minus_one = [neighbor - 1 for neighbor in successors]
-            # 写入当前顶点的继承节点数量及其继承节点
-            file.write(f"{len(successors)} {' '.join(map(str, neighbors_minus_one))}\n")
+            file.write(f"a\n")
+        
+        # 获取边的数量
+        num_edges = graph.num_edges()
+        file.write(f"{num_edges}\n")
+        
+        # 写入边信息，每条边两个节点（无向图，每条边只写一次）
+        for u, v in graph.edges(labels=False):
+            file.write(f"{u-1} {v-1}\n")
 
+pattern_graph = generate_hexagonal_grid_graph(layer)
 
-#pattern_graph = generate_hexagonal_grid_graph(layer)
+target_graph = generate_candidate_graph(layer, d)
 
-candidate_graph = generate_candidate_graph(layer, d)
+export_graph_to_gfu(pattern_graph, filename=f'/Users/youhua.li/code/math/layered_honeycomb_puzzle/layer/{layer}/pattern.gfu')
 
-#export_graph_to_lad(pattern_graph, f'/Users/youhua.li/code/math/layered_honeycomb_puzzle/layer/{layer}/pattern.lad')
-
-export_graph_to_lad(candidate_graph, f'/Users/youhua.li/code/math/layered_honeycomb_puzzle/layer/{layer}/distance-{d}.lad')
+export_graph_to_gfu(target_graph, f'/Users/youhua.li/code/math/layered_honeycomb_puzzle/layer/{layer}/distance-{d}.gfu')
