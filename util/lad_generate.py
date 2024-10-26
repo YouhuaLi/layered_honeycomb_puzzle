@@ -24,7 +24,7 @@ def generate_candidate_graph(layer, d):
     # Add edges based on the absolute difference condition
     for i in numbers:
         for j in range(i+1, len(numbers)+1):
-            if abs( i - j ) >= d:
+            if abs( i - j ) >= d and abs( i - j ) <= 33:
                 graph.add_edge(i, j)
 
     # Print the graph

@@ -44,29 +44,29 @@ def hex_grid_to_lad(grid):
         neighbors_data[hex] = [lad_data.index(n) for n in neighbors]
     return lad_data, neighbors_data
 
-def print_lad_data(lad_data, neighbors_data):
+def print_lad_data_directed(lad_data, neighbors_data):
     """
-    Prints the LAD data in the correct LAD format.
+    Prints the LAD data in the directed graph format, where each vertex has
+    a list of its successors. The direction is unimportant, so each edge 
+    is printed only once.
     """
     n = len(lad_data)
-    print(n)
+    print(n)  # Print the number of vertices
+
+    printed_edges = set()  # To track edges we've already printed
     for hex in lad_data:
         neighbors = neighbors_data[hex]
-        neighbors_str = " ".join(map(str, neighbors))
-        print(f"{len(neighbors)} {neighbors_str}")
+        successors = []
+        for neighbor in neighbors:
+            # Sort the hex and neighbor to ensure we only print each pair once
+            edge = tuple(sorted([lad_data.index(hex), neighbor]))
+            if edge not in printed_edges:
+                printed_edges.add(edge)
+                successors.append(neighbor)  # Collect this neighbor as a successor
+        
+        # Print the number of successors followed by the list of successors
+        print(f"{len(successors)} " + " ".join(map(str, successors)))
 
-def mapping_node_to_label(mappings):
-    """
-    Maps the node number to a label for visualization.
-    """
-    result = {}
-    mappings = mappings[1:-1]
-    mappings = mappings.split(") (")
-    for map in mappings:
-        map = map.split(" -> ")
-        result[map[0]] = map[1]
-    print (result)
-    return result
 
 def visualize_lad_to_png(lad_data, neighbors_data, output_file, mappings):
     """
@@ -98,14 +98,16 @@ def visualize_lad_to_png(lad_data, neighbors_data, output_file, mappings):
     plt.close()
 
 def main(rings, image_file):
-    rings = rings - 1 # Convert to 0-indexed
+    rings = rings - 1  # Convert to 0-indexed
     grid = generate_hex_grid(rings)
     lad_data, neighbors_data = hex_grid_to_lad(grid)
-    print_lad_data(lad_data, neighbors_data)
+    
+    # Print the LAD data in a directed graph format
+    print_lad_data_directed(lad_data, neighbors_data)
+    
+    # Optional: Visualize the LAD data to a PNG
+    #visualize_lad_to_png(lad_data, neighbors_data, image_file, mappings)
 
-    mappings = "(0 -> 3) (1 -> 9) (2 -> 24) (3 -> 23) (4 -> 7) (5 -> 30) (6 -> 21) (7 -> 15) (8 -> 26) (9 -> 17) (10 -> 12) (11 -> 4) (12 -> 11) (13 -> 14) (14 -> 5) (15 -> 28) (16 -> 10) (17 -> 8) (18 -> 32) (19 -> 6) (20 -> 35) (21 -> 19) (22 -> 2) (23 -> 20) (24 -> 33) (25 -> 13) (26 -> 1) (27 -> 31) (28 -> 36) (29 -> 18) (30 -> 27) (31 -> 22) (32 -> 34) (33 -> 29) (34 -> 16) (35 -> 0) (36 -> 25)"
-    mappings = mapping_node_to_label(mappings)
-    visualize_lad_to_png(lad_data, neighbors_data, image_file, mappings)
 
 if __name__ == "__main__":
     import argparse
