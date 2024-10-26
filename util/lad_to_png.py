@@ -32,7 +32,8 @@ def visualize_lad_file(neighbors_data, output_file):
             G.add_edge(node, neighbor)
     
     # Draw the graph using a planar layout
-    pos = nx.planar_layout(G)  # Use planar layout for visualization
+    #pos = nx.planar_layout(G)  # Use planar layout for visualization
+    pos = nx.spring_layout(G)  # Use spring layout for visualization
     nx.draw(G, pos, with_labels=True, node_size=300, font_size=8, node_color='skyblue', edge_color='gray')
     plt.savefig(output_file)
     plt.close()
